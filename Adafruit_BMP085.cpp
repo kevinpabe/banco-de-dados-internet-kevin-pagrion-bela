@@ -295,3 +295,16 @@ void Adafruit_BMP085::write8(uint8_t a, uint8_t d) {
 #endif
   Wire.endTransmission(); // end transmission
 }
+
+void sendDataToThingspeak(int value) {
+  HTTPClient http;
+  String request = "GET https://" + String(thingspeak_server) + "/update?api_key=" + String(thingspeak_write_api_key) + "&" + String(thingspeak_field_id) + "=" + String(value);
+  http.begin(request);
+  int httpResponseCode = http.GET();
+  if (httpResponseCode > 0) {
+    Serial.println("Data sent to Thingspeak");
+  } else {
+    Serial.println("Error sending data to Thingspeak");
+  }
+  http.end();
+}
