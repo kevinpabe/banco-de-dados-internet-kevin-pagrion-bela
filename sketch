@@ -1,0 +1,60 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+#include <WiFi.h>
+
+Adafruit_BME280 bme;
+const char *ssid = "KK-5G";
+const char *password = "Pagrion123VICCAK01";
+
+
+void setup() {
+  Serial.begin(9600);
+  if (!bme.begin(0x76)) {
+    Serial.println("Não foi possível inicializar o sensor BME280. Verifique se ele está conectado.");
+    while (1);
+  }
+  WiFi.begin((char*)ssid, (char*)password);
+  while (WiFi.status() != WL_CONNECTED) {
+  delay(1000);
+  Serial.println("Conectando à rede WiFi...");
+  }
+  Serial.println("Conectado à rede WiFi");
+}
+
+void loop() {
+  Serial.print("Temperatura: ");
+  Serial.print(bme.readTemperature());
+  Serial.println(" *C");
+
+  Serial.print("Umidade: ");
+  Serial.print(bme.readHumidity());
+  Serial.println(" %");
+
+  Serial.print("Pressão Atmosférica: ");
+  Serial.print(bme.readPressure() / 100.0F);
+  Serial.println(" hPa");
+
+  Serial.println();
+  delay(2000);
+
+  String postData = "field1=" + String(bme.readTemperature()) + "&field2=" + String(bme.readPressure() / 100.0F) + "&api_key=OI0U8ZFXHA4KGWIU";
+WiFiClient client;
+const int httpPort = 80;
+if (!client.connect("api.thingspeak.com", httpPort)) {
+  Serial.println("Não foi possível conectar ao Thingspeak");
+  return;
+}
+
+client.print(String("POST /update HTTP/1.1\r\n") +
+"Host: api.thingspeak.com\r\n" +
+"Connection: close\r\n" +
+"Content-Type: application/x-www-form-urlencoded\r\n" +
+"Content-Length: " + postData.length() + "\r\n\r\n" +
+postData);
+
+Serial.println("Dados enviados para o Thingspeak");
+
+
+  
+}
